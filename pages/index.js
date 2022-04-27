@@ -11,7 +11,8 @@ const Home = () => {
   }, []);
 
   const socketInitializer = async () => {
-    await fetch("/api/socket");
+    const response = await fetch("/api/socket");
+    console.log("response: ", response);
 
     socket.on("connect", () => {
       console.log("connected");
@@ -25,6 +26,7 @@ const Home = () => {
   const onChangeHandler = (e) => {
     setInput(e.target.value);
     socket.emit("input-change", e.target.value);
+    console.log("socket: ", socket);
   };
 
   return <input placeholder="Type something" value={input} onChange={onChangeHandler} />;

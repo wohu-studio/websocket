@@ -1,27 +1,42 @@
-import { Server } from "Socket.IO";
+import { Server } from "socket.io";
 import { addUser, getUser, deleteUser } from "../../users";
 import Cors from "cors";
-import initMiddleware from "../../middleware/inital";
+import initMiddleware from "../../middleware/initMiddleware";
 
 // Initialize the cors middleware
-const cors = initMiddleware(
-  // You can read more about the available options here: https://github.com/expressjs/cors#configuration-options
-  Cors({
-    // Only allow requests with GET, POST and OPTIONS
-    methods: ["GET", "POST", "OPTIONS"],
-    origin: true,
-  })
-);
+const cors = Cors({
+  methods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
+  origin: "*",
+  withCredentials: true,
+});
+
+function runMiddleware(req, res, fn) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
+    });
+  });
+}
 
 const SocketHandler = async (req, res) => {
-  await cors(req, res);
+  await runMiddleware(req, res, cors);
   console.log("req: ", req);
 
   if (res.socket.server.io) {
     console.log("Socket is already running");
   } else {
     console.log("Socket is initializing");
-    const io = new Server(res.socket.server);
+    //const io = new Server(res.socket.server);
+    const io = new Server(res.socket.server, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+        credentials: true,
+      },
+    });
     res.socket.server.io = io;
 
     io.on("connection", (socket) => {
@@ -51,7 +66,12 @@ const SocketHandler = async (req, res) => {
       // });
     });
   }
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  // res.setHeader("Access-Control-Allow-Origin", "*");
+  // res.setHeader("Access-Control-Allow-Credentials", "true");
+  // res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, PATCH, DELETE");
+  // res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  res.json({ message: "Hello Everyone!" });
   res.end();
 };
 
