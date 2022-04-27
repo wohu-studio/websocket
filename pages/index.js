@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
+// import { Button } from "@mui/material";
 
 const socket = io();
 
@@ -17,19 +18,18 @@ const Home = () => {
     socket.on("connect", () => {
       console.log("connected");
     });
-
-    socket.on("update-input", (msg) => {
-      setInput(msg);
-    });
   };
 
-  const onChangeHandler = (e) => {
-    setInput(e.target.value);
-    socket.emit("input-change", e.target.value);
-    console.log("socket: ", socket);
+  const handleSubmit = () => {
+    socket.emit("changeOrder", "Order:1001");
   };
 
-  return <input placeholder="Type something" value={input} onChange={onChangeHandler} />;
+  return (
+    <>
+      <h1>Headoffice</h1>
+      <button onClick={handleSubmit}>submit</button>
+    </>
+  );
 };
 
 export default Home;

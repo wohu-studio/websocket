@@ -3,28 +3,7 @@ import { addUser, getUser, deleteUser } from "../../users";
 import Cors from "cors";
 import initMiddleware from "../../middleware/initMiddleware";
 
-// Initialize the cors middleware
-const cors = Cors({
-  methods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
-  origin: "*",
-  withCredentials: true,
-});
-
-function runMiddleware(req, res, fn) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
-    });
-  });
-}
-
 const SocketHandler = async (req, res) => {
-  await runMiddleware(req, res, cors);
-  console.log("req: ", req);
-
   if (res.socket.server.io) {
     console.log("Socket is already running");
   } else {
@@ -40,8 +19,8 @@ const SocketHandler = async (req, res) => {
     res.socket.server.io = io;
 
     io.on("connection", (socket) => {
-      socket.on("input-change", (msg) => {
-        socket.broadcast.emit("update-input", msg);
+      socket.on("changeOrder", (orderNumber) => {
+        socket.broadcast.emit("updateMessage", `${orderNumber} has been updated. Please refresh the page.`);
       });
 
       // socket.on("joinRoom", ({ username, roomname }) => {
@@ -66,11 +45,6 @@ const SocketHandler = async (req, res) => {
       // });
     });
   }
-  // res.setHeader("Access-Control-Allow-Origin", "*");
-  // res.setHeader("Access-Control-Allow-Credentials", "true");
-  // res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, PATCH, DELETE");
-  // res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
   res.json({ message: "Hello Everyone!" });
   res.end();
 };
